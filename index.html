@@ -28,6 +28,12 @@
             .then(displayZombies);
           }
         }, 100);
+
+        cryptoZombies.events.Transfer({ filter: { _to: userAccount } })
+.on("data", function(event) {
+  let data = event.returnValues;
+  getZombiesByOwner(userAccount).then(displayZombies);
+}).on("error", console.error);
       }
 
       function displayZombies(ids) {
@@ -53,19 +59,17 @@
       }
 
       function createRandomZombie(name) {
-        // This is going to take a while, so update the UI to let the user know
         // the transaction has been sent
         $("#txStatus").text("Creating new zombie on the blockchain. This may take a while...");
-        // Send the tx to our contract:
+        // Send the tx to contract:
         return cryptoZombies.methods.createRandomZombie(name)
         .send({ from: userAccount })
         .on("receipt", function(receipt) {
           $("#txStatus").text("Successfully created " + name + "!");
-          // Transaction was accepted into the blockchain, let's redraw the UI
+          // Transaction was accepted into the blockchain
           getZombiesByOwner(userAccount).then(displayZombies);
         })
         .on("error", function(error) {
-          // Do something to alert the user their transaction has failed
           $("#txStatus").text(error);
         });
       }
@@ -86,14 +90,13 @@
       function levelUp(zombieId) {
         $("#txStatus").text("Leveling up your zombie...");
         return cryptoZombies.methods.levelUp(zombieId)
-        .send({ from: userAccount, value: web3js.utils.toWei("0.001", "ether") })
+        .send({ from: userAccount, value: web3.utils.toWei("0.001", "ether") })
         .on("receipt", function(receipt) {
           $("#txStatus").text("Power overwhelming! Zombie successfully leveled up");
         })
         .on("error", function(error) {
           $("#txStatus").text(error);
         });
-
       }
 
       function getZombieDetails(id) {
@@ -115,8 +118,8 @@
           // Use Mist/MetaMask's provider
           web3js = new Web3(web3.currentProvider);
         } else {
+          // Handle the case where the user doesn't have Metamask installed
         }
-
         startApp()
 
       })
